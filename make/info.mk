@@ -30,3 +30,5 @@ else
     endif
 endif
 LDFLAGS += "
+
+MODULES := api manager wrapper-server

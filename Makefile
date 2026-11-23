@@ -15,20 +15,16 @@
 SHELL := bash
 .SHELLFLAGS := -exc
 
-.PHONY: build manager/build wrapper-server/build
-manager/build:
-	$(MAKE) -C manager build
+include make/info.mk
 
-wrapper-server/build:
-	$(MAKE) -C wrapper-server build
+.PHONY: all build lint $(addsuffix /build,$(MODULES)) $(addsuffix /lint,$(MODULES))
 
-build: manager/build wrapper-server/build
+$(addsuffix /build,$(MODULES)): %/build:
+	$(MAKE) -C $* build
 
-.PHONY: lint manager/lint wrapper-server/lint
-manager/lint:
-	$(MAKE) -C manager lint
+$(addsuffix /lint,$(MODULES)): %/lint:
+	$(MAKE) -C $* lint
 
-wrapper-server/lint:
-	$(MAKE) -C wrapper-server lint
+build: $(addsuffix /build,$(MODULES))
 
-lint: manager/lint wrapper-server/lint
+lint: $(addsuffix /lint,$(MODULES))
