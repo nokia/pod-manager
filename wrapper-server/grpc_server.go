@@ -19,8 +19,8 @@ import (
 	"fmt"
 	"net"
 
-	"github.com/kptdev/kpt/wrapper-server/healthchecker"
-	pb "github.com/kptdev/kpt/wrapper-server/proto"
+	"github.com/kptdev/pod-manager/wrapper-server/healthchecker"
+	pb "github.com/kptdev/pod-manager/wrapper-server/proto"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.opentelemetry.io/otel/metric"
 	"google.golang.org/grpc"

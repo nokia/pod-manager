@@ -17,7 +17,7 @@ package main
 import (
 	"testing"
 
-	"github.com/kptdev/kpt/function-pod-manager/fnpod"
+	"github.com/kptdev/pod-manager/fnpod"
 	"github.com/stretchr/testify/assert"
 )
 

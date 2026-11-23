@@ -1,15 +1,15 @@
-module github.com/kptdev/kpt/wrapper-server
+module github.com/kptdev/pod-manager/wrapper-server
 
 go 1.26.8
 
 replace github.com/kptdev/kpt/api => github.com/nokia/kpt/api v0.0.0-20261110090046-871b407a52d5
 
-replace github.com/kptdev/kpt/function-pod-manager => ../function-pod-manager
+replace github.com/kptdev/pod-manager => ..
 
 require (
 	github.com/google/go-containerregistry v0.21.6
 	github.com/kptdev/kpt/api v1.1.0
-	github.com/kptdev/kpt/function-pod-manager v0.0.0-00010101000000-000000000000
+	github.com/kptdev/pod-manager v0.0.0-00010101000000-000000000000
 	github.com/prometheus/client_golang v1.24.1
 	github.com/spf13/cobra v1.10.2
 	github.com/stretchr/testify v1.12.1

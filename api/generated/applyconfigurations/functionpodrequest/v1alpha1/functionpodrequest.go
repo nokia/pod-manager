@@ -17,8 +17,8 @@
 package v1alpha1
 
 import (
-	functionpodrequestv1alpha1 "github.com/kptdev/kpt/function-pod-manager/api/functionpodrequest/v1alpha1"
-	internal "github.com/kptdev/kpt/function-pod-manager/api/generated/applyconfigurations/internal"
+	functionpodrequestv1alpha1 "github.com/kptdev/pod-manager/api/functionpodrequest/v1alpha1"
+	internal "github.com/kptdev/pod-manager/api/generated/applyconfigurations/internal"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	types "k8s.io/apimachinery/pkg/types"
 	managedfields "k8s.io/apimachinery/pkg/util/managedfields"

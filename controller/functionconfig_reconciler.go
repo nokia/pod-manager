@@ -18,8 +18,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/kptdev/kpt/function-pod-manager/api/functionpodrequest/v1alpha1"
-	"github.com/kptdev/kpt/function-pod-manager/fnpod"
+	"github.com/kptdev/pod-manager/api/functionpodrequest/v1alpha1"
+	"github.com/kptdev/pod-manager/fnpod"
 	functionconfig "github.com/kptdev/porch/api/porchconfig/v1alpha1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	ctrl "sigs.k8s.io/controller-runtime"

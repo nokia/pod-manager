@@ -19,9 +19,9 @@ import (
 	"time"
 
 	"github.com/kptdev/kpt/api/utils/image"
-	"github.com/kptdev/kpt/function-pod-manager/api/functionpodrequest/v1alpha1"
-	"github.com/kptdev/kpt/function-pod-manager/fnpod"
-	"github.com/kptdev/kpt/function-pod-manager/provisioner/util"
+	"github.com/kptdev/pod-manager/api/functionpodrequest/v1alpha1"
+	"github.com/kptdev/pod-manager/fnpod"
+	"github.com/kptdev/pod-manager/provisioner/util"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/klog/v2"
 )

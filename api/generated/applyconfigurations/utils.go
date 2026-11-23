@@ -17,9 +17,9 @@
 package applyconfigurations
 
 import (
-	v1alpha1 "github.com/kptdev/kpt/function-pod-manager/api/functionpodrequest/v1alpha1"
-	functionpodrequestv1alpha1 "github.com/kptdev/kpt/function-pod-manager/api/generated/applyconfigurations/functionpodrequest/v1alpha1"
-	internal "github.com/kptdev/kpt/function-pod-manager/api/generated/applyconfigurations/internal"
+	v1alpha1 "github.com/kptdev/pod-manager/api/functionpodrequest/v1alpha1"
+	functionpodrequestv1alpha1 "github.com/kptdev/pod-manager/api/generated/applyconfigurations/functionpodrequest/v1alpha1"
+	internal "github.com/kptdev/pod-manager/api/generated/applyconfigurations/internal"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 	schema "k8s.io/apimachinery/pkg/runtime/schema"
 	managedfields "k8s.io/apimachinery/pkg/util/managedfields"

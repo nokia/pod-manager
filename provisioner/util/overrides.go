@@ -18,7 +18,7 @@ import (
 	"fmt"
 	"slices"
 
-	"github.com/kptdev/kpt/function-pod-manager/fnpod"
+	"github.com/kptdev/pod-manager/fnpod"
 	functionconfig "github.com/kptdev/porch/api/porchconfig/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
