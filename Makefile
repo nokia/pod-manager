@@ -15,7 +15,7 @@
 SHELL := bash
 .SHELLFLAGS := -exc
 
-include ../make/info.mk
+include make/info.mk
 
 .PHONY: all
 all: fix vet fmt lint test tidy

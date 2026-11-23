@@ -17,7 +17,7 @@
 package v1alpha1
 
 import (
-	apiv1alpha1 "github.com/kptdev/kpt/function-pod-manager/api/functionpodrequest/v1alpha1"
+	apiv1alpha1 "github.com/kptdev/pod-manager/api/functionpodrequest/v1alpha1"
 )
 
 // FunctionPodRequestStatusApplyConfiguration represents a declarative configuration of the FunctionPodRequestStatus type for use

@@ -19,7 +19,7 @@ import (
 	"sync"
 
 	"github.com/kptdev/kpt/api/utils/image"
-	"github.com/kptdev/kpt/function-pod-manager/provisioner/util"
+	"github.com/kptdev/pod-manager/provisioner/util"
 	functionconfig "github.com/kptdev/porch/api/porchconfig/v1alpha1"
 	"k8s.io/apimachinery/pkg/types"
 )

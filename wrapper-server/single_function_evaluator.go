@@ -23,7 +23,7 @@ import (
 	"os/exec"
 
 	"github.com/kptdev/kpt/api/kubeobject"
-	pb "github.com/kptdev/kpt/wrapper-server/proto"
+	pb "github.com/kptdev/pod-manager/wrapper-server/proto"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"k8s.io/klog/v2"
