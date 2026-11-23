@@ -17,12 +17,12 @@ package main
 import (
 	"testing"
 
-	"github.com/kptdev/pod-manager/fnpod"
+	"github.com/kptdev/pod-manager/api/consts"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestResolveFunctionImageRejectsPorchPlaceholder(t *testing.T) {
 	const repo = "example.com/fn"
-	assert.Equal(t, repo+":v0.1.5", resolveFunctionImage(fnpod.PlaceholderFunctionImage, repo, "v0.1.5"))
+	assert.Equal(t, repo+":v0.1.5", resolveFunctionImage(consts.PlaceholderFunctionImage, repo, "v0.1.5"))
 	assert.Equal(t, "example.com/other:v1", resolveFunctionImage("example.com/other:v1", repo, "v0.1.5"))
 }

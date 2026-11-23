@@ -15,44 +15,20 @@
 SHELL := bash
 .SHELLFLAGS := -exc
 
-include make/info.mk
+.PHONY: build manager/build wrapper-server/build
+manager/build:
+	$(MAKE) -C manager build
 
-.PHONY: all
-all: fix vet fmt lint test tidy
+wrapper-server/build:
+	$(MAKE) -C wrapper-server build
 
-.PHONY: fix
-fix:
-	go fix ./...
+build: manager/build wrapper-server/build
 
-.PHONY: fmt
-fmt:
-	go fmt ./...
+.PHONY: lint manager/lint wrapper-server/lint
+manager/lint:
+	$(MAKE) -C manager lint
 
-.PHONY: tidy
-tidy:
-	go mod tidy
+wrapper-server/lint:
+	$(MAKE) -C wrapper-server lint
 
-# if the local version of golangci-lint matches the one we want, we can use that without overhead
-.PHONY: lint
-lint:
-	@if [[ `command -v golangci-lint` && `golangci-lint version --short` == $(GOLANGCI_LINT_VERSION) ]]; then \
-		golangci-lint run -v ./...; \
-	else \
-		go run github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v$(GOLANGCI_LINT_VERSION) run -v ./...; \
-	fi
-
-.PHONY: test
-test:
-	go test -cover ${LDFLAGS} ./...
-
-.PHONY: vet
-vet:
-	go vet ./...
-
-.PHONY: generate
-generate:
-	GOBIN=$(GOBIN) YEAR_GEN=$(YEAR_GEN) go generate ./...
-
-.PHONY: build
-build:
-	go build ${LDFLAGS} -o $(GOBIN)/pod-manager -v .
+lint: manager/lint wrapper-server/lint

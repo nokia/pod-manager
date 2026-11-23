@@ -26,8 +26,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/kptdev/pod-manager/api/consts"
 	fnreqv1alpha1 "github.com/kptdev/pod-manager/api/functionpodrequest/v1alpha1"
-	"github.com/kptdev/pod-manager/fnpod"
+	"github.com/kptdev/pod-manager/api/imageutil"
 	pb "github.com/kptdev/pod-manager/wrapper-server/proto"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -81,7 +82,7 @@ func TestMain(m *testing.M) {
 	exitOnError(env, err)
 	repository, err := functionRepository(claimTestImage)
 	exitOnError(env, err)
-	claimImageKey, err = fnpod.ImageKey(repository)
+	claimImageKey, err = imageutil.ImageKey(repository)
 	exitOnError(env, err)
 
 	code := m.Run()
@@ -114,8 +115,8 @@ func TestWrapperClaimsACreatedFunctionPodRequest(t *testing.T) {
 	t.Setenv("POD_NAMESPACE", ns)
 	t.Setenv("POD_NAME", claimTestPodName)
 	t.Setenv("POD_IP", claimTestPodIP)
-	t.Setenv(fnpod.EnvFunctionImage, claimTestImage)
-	t.Setenv(fnpod.EnvVersion, claimTestVersion)
+	t.Setenv(consts.EnvFunctionImage, claimTestImage)
+	t.Setenv(consts.EnvVersion, claimTestVersion)
 	run := startWrapper(t, ctx, Options{})
 
 	port := waitClaimed(t, ctx, run, ns, claimTestRequest)
@@ -181,7 +182,7 @@ func TestWrapperIgnoresAnotherImageKey(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	ns := newNamespace(t, ctx)
-	otherKey, err := fnpod.ImageKey("example.com/krm/other")
+	otherKey, err := imageutil.ImageKey("example.com/krm/other")
 	require.NoError(t, err)
 	createRequest(t, ctx, requestSpec{name: "fnreq-other-key", namespace: ns, imageKey: otherKey})
 	time.Sleep(time.Second)
@@ -301,7 +302,7 @@ func createRequest(t *testing.T, ctx context.Context, spec requestSpec) {
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      spec.name,
 			Namespace: spec.namespace,
-			Labels:    map[string]string{fnpod.LabelImageKey: imageKey},
+			Labels:    map[string]string{consts.LabelImageKey: imageKey},
 		},
 		Spec: fnreqv1alpha1.FunctionPodRequestSpec{
 			Image:             claimTestImage,

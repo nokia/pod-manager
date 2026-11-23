@@ -24,8 +24,9 @@ import (
 	"sync"
 	"time"
 
+	"github.com/kptdev/pod-manager/api/consts"
 	fnreqv1alpha1 "github.com/kptdev/pod-manager/api/functionpodrequest/v1alpha1"
-	"github.com/kptdev/pod-manager/fnpod"
+	"github.com/kptdev/pod-manager/api/imageutil"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -80,7 +81,7 @@ func (c *ClaimController) AdoptClaimsOnStartup(ctx context.Context) error {
 	list := &fnreqv1alpha1.FunctionPodRequestList{}
 	if err := c.Client.List(ctx, list,
 		client.InNamespace(c.Namespace),
-		client.MatchingLabels{fnpod.LabelImageKey: c.ImageKey},
+		client.MatchingLabels{consts.LabelImageKey: c.ImageKey},
 	); err != nil {
 		return err
 	}
@@ -205,7 +206,7 @@ func (c *ClaimController) listClaimable(ctx context.Context) ([]fnreqv1alpha1.Fu
 	list := &fnreqv1alpha1.FunctionPodRequestList{}
 	if err := c.Client.List(ctx, list,
 		client.InNamespace(c.Namespace),
-		client.MatchingLabels{fnpod.LabelImageKey: c.ImageKey},
+		client.MatchingLabels{consts.LabelImageKey: c.ImageKey},
 	); err != nil {
 		return nil, err
 	}
@@ -254,11 +255,11 @@ func (c *ClaimController) skipReason(req *fnreqv1alpha1.FunctionPodRequest, now 
 	if key := requestImageKey(req); key != "" && c.ImageKey != "" && key != c.ImageKey {
 		return fmt.Sprintf("image-key %q != pod %q", key, c.ImageKey)
 	}
-	if base := fnpod.ImageBaseName(req.Spec.Image); base != c.FunctionBaseName {
+	if base := imageutil.ImageBaseName(req.Spec.Image); base != c.FunctionBaseName {
 		return fmt.Sprintf("image base %q != pod %q", base, c.FunctionBaseName)
 	}
-	constraint := fnpod.GetVersionConstraint(req.Spec.VersionConstraint, req.Spec.Image)
-	if !fnpod.VersionSatisfies(c.ResolvedVersion, constraint) {
+	constraint := imageutil.GetVersionConstraint(req.Spec.VersionConstraint, req.Spec.Image)
+	if !imageutil.VersionSatisfies(c.ResolvedVersion, constraint) {
 		return fmt.Sprintf("pod version %q does not satisfy %q", c.ResolvedVersion, constraint)
 	}
 	return ""
@@ -268,7 +269,7 @@ func requestImageKey(req *fnreqv1alpha1.FunctionPodRequest) string {
 	if req.Labels == nil {
 		return ""
 	}
-	return strings.TrimSpace(req.Labels[fnpod.LabelImageKey])
+	return strings.TrimSpace(req.Labels[consts.LabelImageKey])
 }
 
 func deadlineText(req *fnreqv1alpha1.FunctionPodRequest) string {

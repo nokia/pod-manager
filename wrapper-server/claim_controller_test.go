@@ -19,8 +19,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/kptdev/pod-manager/api/consts"
 	fnreqv1alpha1 "github.com/kptdev/pod-manager/api/functionpodrequest/v1alpha1"
-	"github.com/kptdev/pod-manager/fnpod"
+	"github.com/kptdev/pod-manager/api/imageutil"
 	"github.com/stretchr/testify/require"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -33,7 +34,7 @@ const testRepository = "registry.example.com/fn"
 
 func testImageKey(t *testing.T) string {
 	t.Helper()
-	key, err := fnpod.ImageKey(testRepository)
+	key, err := imageutil.ImageKey(testRepository)
 	require.NoError(t, err)
 	return key
 }
@@ -48,7 +49,7 @@ func TestClaimControllerTryClaim(t *testing.T) {
 		ObjectMeta: v1.ObjectMeta{
 			Name:      "req-a",
 			Namespace: "ns",
-			Labels:    map[string]string{fnpod.LabelImageKey: key},
+			Labels:    map[string]string{consts.LabelImageKey: key},
 		},
 		Spec: fnreqv1alpha1.FunctionPodRequestSpec{
 			Image: repo + ":v1",
@@ -88,7 +89,7 @@ func TestClaimControllerClaimsEmptyPhase(t *testing.T) {
 	scheme := runtime.NewScheme()
 	require.NoError(t, fnreqv1alpha1.AddToScheme(scheme))
 	fr := &fnreqv1alpha1.FunctionPodRequest{
-		ObjectMeta: v1.ObjectMeta{Name: "req-empty", Namespace: "ns", Labels: map[string]string{fnpod.LabelImageKey: key}},
+		ObjectMeta: v1.ObjectMeta{Name: "req-empty", Namespace: "ns", Labels: map[string]string{consts.LabelImageKey: key}},
 		Spec:       fnreqv1alpha1.FunctionPodRequestSpec{Image: repo + ":v0.1.5", VersionConstraint: "v0.1.5"},
 	}
 	cl := fake.NewClientBuilder().WithScheme(scheme).WithStatusSubresource(fr).WithObjects(fr).Build()
@@ -109,7 +110,7 @@ func TestClaimControllerSkipsWrongVersion(t *testing.T) {
 	require.NoError(t, fnreqv1alpha1.AddToScheme(scheme))
 
 	fr := &fnreqv1alpha1.FunctionPodRequest{
-		ObjectMeta: v1.ObjectMeta{Name: "req-v2", Namespace: "ns", Labels: map[string]string{fnpod.LabelImageKey: key}},
+		ObjectMeta: v1.ObjectMeta{Name: "req-v2", Namespace: "ns", Labels: map[string]string{consts.LabelImageKey: key}},
 		Spec: fnreqv1alpha1.FunctionPodRequestSpec{
 			Image:             repo + ":v2",
 			VersionConstraint: "~2.0.0",
@@ -154,7 +155,7 @@ func TestAdoptClaimsOnStartup(t *testing.T) {
 	require.NoError(t, fnreqv1alpha1.AddToScheme(scheme))
 
 	fr := &fnreqv1alpha1.FunctionPodRequest{
-		ObjectMeta: v1.ObjectMeta{Name: "req-c", Namespace: "ns", Labels: map[string]string{fnpod.LabelImageKey: key}},
+		ObjectMeta: v1.ObjectMeta{Name: "req-c", Namespace: "ns", Labels: map[string]string{consts.LabelImageKey: key}},
 		Spec:       fnreqv1alpha1.FunctionPodRequestSpec{Image: repo + ":v1"},
 		Status: fnreqv1alpha1.FunctionPodRequestStatus{
 			Phase:            fnreqv1alpha1.FunctionPodRequestPhaseClaimed,
@@ -176,7 +177,7 @@ func TestClaimGraceReleasesToCreated(t *testing.T) {
 	require.NoError(t, fnreqv1alpha1.AddToScheme(scheme))
 
 	fr := &fnreqv1alpha1.FunctionPodRequest{
-		ObjectMeta: v1.ObjectMeta{Name: "req-d", Namespace: "ns", Labels: map[string]string{fnpod.LabelImageKey: key}},
+		ObjectMeta: v1.ObjectMeta{Name: "req-d", Namespace: "ns", Labels: map[string]string{consts.LabelImageKey: key}},
 		Spec:       fnreqv1alpha1.FunctionPodRequestSpec{Image: repo + ":v1"},
 		Status:     fnreqv1alpha1.FunctionPodRequestStatus{Phase: fnreqv1alpha1.FunctionPodRequestPhaseCreated},
 	}
@@ -283,7 +284,7 @@ func claimFixture(imageKey, name string, created time.Time) *fnreqv1alpha1.Funct
 		ObjectMeta: v1.ObjectMeta{
 			Name:              name,
 			Namespace:         "ns",
-			Labels:            map[string]string{fnpod.LabelImageKey: imageKey},
+			Labels:            map[string]string{consts.LabelImageKey: imageKey},
 			CreationTimestamp: v1.NewTime(created),
 		},
 		Spec: fnreqv1alpha1.FunctionPodRequestSpec{Image: testRepository + ":v1"},

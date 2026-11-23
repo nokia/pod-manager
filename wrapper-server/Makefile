@@ -51,4 +51,4 @@ vet:
 
 .PHONY: build
 build:
-	go build ${LDFLAGS} -o $(GOBIN)/wrapper-server -v .
+	go build ${LDFLAGS} -o $(BUILD_DIR)/wrapper-server -v .
