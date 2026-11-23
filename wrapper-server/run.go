@@ -22,8 +22,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/kptdev/pod-manager/api/consts"
 	fnreqv1alpha1 "github.com/kptdev/pod-manager/api/functionpodrequest/v1alpha1"
-	"github.com/kptdev/pod-manager/fnpod"
+	"github.com/kptdev/pod-manager/api/imageutil"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
@@ -89,7 +90,7 @@ func Run(parent context.Context, op *Options) error {
 	utilruntime.Must(fnreqv1alpha1.AddToScheme(scheme))
 
 	// Watch only this namespace and this pod's image-key. Other functions never enter the cache.
-	labelSelector := labels.SelectorFromSet(labels.Set{fnpod.LabelImageKey: pod.imageKey})
+	labelSelector := labels.SelectorFromSet(labels.Set{consts.LabelImageKey: pod.imageKey})
 	// The controller name is recorded in a process-global set that is not cleared when the
 	// manager stops. Tests start Run more than once. This process registers one claim controller.
 	skipNameValidation := true
@@ -130,7 +131,7 @@ func Run(parent context.Context, op *Options) error {
 		PodIP:             pod.podIP,
 		GRPCPort:          pod.grpcPort,
 		FunctionImage:     pod.image,
-		FunctionBaseName:  fnpod.ImageBaseName(pod.repository),
+		FunctionBaseName:  imageutil.ImageBaseName(pod.repository),
 		ImageKey:          pod.imageKey,
 		ResolvedVersion:   pod.version,
 		ClaimGracePeriod:  op.ClaimGracePeriod,
@@ -187,8 +188,8 @@ func Run(parent context.Context, op *Options) error {
 		"version", pod.version,
 		"imageKey", pod.imageKey,
 	)
-	if pod.image == fnpod.PlaceholderFunctionImage {
-		klog.ErrorS(fmt.Errorf("FUNCTION_IMAGE is %s", fnpod.PlaceholderFunctionImage),
+	if pod.image == consts.PlaceholderFunctionImage {
+		klog.ErrorS(fmt.Errorf("FUNCTION_IMAGE is %s", consts.PlaceholderFunctionImage),
 			"porch placeholder was not replaced; this pod will skip real FunctionPodRequests")
 	}
 	if metricsAddr != "" {
@@ -232,16 +233,16 @@ func wrapperPodFrom(op *Options) (wrapperPod, error) {
 	}
 	fnImage := strings.TrimSpace(op.FunctionImage)
 	if fnImage == "" {
-		fnImage = strings.TrimSpace(os.Getenv(fnpod.EnvFunctionImage))
+		fnImage = strings.TrimSpace(os.Getenv(consts.EnvFunctionImage))
 	}
-	fnImage = resolveFunctionImage(fnImage, strings.TrimSpace(os.Getenv(fnpod.EnvFunctionRepository)), resolved)
+	fnImage = resolveFunctionImage(fnImage, strings.TrimSpace(os.Getenv(consts.EnvFunctionRepository)), resolved)
 	podIP := strings.TrimSpace(op.PodIP)
 	if podIP == "" {
 		podIP = DefaultPodIP()
 	}
 	imageKey := strings.TrimSpace(op.ImageKey)
 	if imageKey == "" {
-		imageKey = strings.TrimSpace(os.Getenv(fnpod.EnvImageKey))
+		imageKey = strings.TrimSpace(os.Getenv(consts.EnvImageKey))
 	}
 	if ns == "" {
 		return wrapperPod{}, fmt.Errorf("namespace is required (set --namespace or POD_NAMESPACE)")
@@ -260,7 +261,7 @@ func wrapperPodFrom(op *Options) (wrapperPod, error) {
 		return wrapperPod{}, fmt.Errorf("function image %q: %w", fnImage, err)
 	}
 	if imageKey == "" {
-		imageKey, err = fnpod.ImageKey(repository)
+		imageKey, err = imageutil.ImageKey(repository)
 		if err != nil {
 			return wrapperPod{}, fmt.Errorf("image key for %q: %w", repository, err)
 		}
@@ -284,7 +285,7 @@ func wrapperPodFrom(op *Options) (wrapperPod, error) {
 // resolveFunctionImage replaces the porch template placeholder using repository and tag.
 func resolveFunctionImage(fnImage, repository, resolvedVersion string) string {
 	fnImage = strings.TrimSpace(fnImage)
-	if fnImage != "" && fnImage != fnpod.PlaceholderFunctionImage {
+	if fnImage != "" && fnImage != consts.PlaceholderFunctionImage {
 		return fnImage
 	}
 	repository = strings.TrimSpace(repository)

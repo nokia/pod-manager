@@ -16,6 +16,8 @@ GOLANG_VERSION    := 1.26.8
 GOLANGCI_LINT_VERSION := 2.15.0
 
 GOBIN := $(shell go env GOPATH)/bin
+ROOT_DIR := $(abspath $(dir $(lastword $(MAKEFILE_LIST)))/..)
+BUILD_DIR := $(ROOT_DIR)/.build
 KPT_VERSION := $(shell date '+development-%Y-%m-%dT%H:%M:%S')
 
 LDFLAGS := -ldflags "-X main.version=${KPT_VERSION}
@@ -28,3 +30,5 @@ else
     endif
 endif
 LDFLAGS += "
+
+MODULES := api manager wrapper-server

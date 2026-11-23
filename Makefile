@@ -17,42 +17,14 @@ SHELL := bash
 
 include make/info.mk
 
-.PHONY: all
-all: fix vet fmt lint test tidy
+.PHONY: all build lint $(addsuffix /build,$(MODULES)) $(addsuffix /lint,$(MODULES))
 
-.PHONY: fix
-fix:
-	go fix ./...
+$(addsuffix /build,$(MODULES)): %/build:
+	$(MAKE) -C $* build
 
-.PHONY: fmt
-fmt:
-	go fmt ./...
+$(addsuffix /lint,$(MODULES)): %/lint:
+	$(MAKE) -C $* lint
 
-.PHONY: tidy
-tidy:
-	go mod tidy
+build: $(addsuffix /build,$(MODULES))
 
-# if the local version of golangci-lint matches the one we want, we can use that without overhead
-.PHONY: lint
-lint:
-	@if [[ `command -v golangci-lint` && `golangci-lint version --short` == $(GOLANGCI_LINT_VERSION) ]]; then \
-		golangci-lint run -v ./...; \
-	else \
-		go run github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v$(GOLANGCI_LINT_VERSION) run -v ./...; \
-	fi
-
-.PHONY: test
-test:
-	go test -cover ${LDFLAGS} ./...
-
-.PHONY: vet
-vet:
-	go vet ./...
-
-.PHONY: generate
-generate:
-	GOBIN=$(GOBIN) YEAR_GEN=$(YEAR_GEN) go generate ./...
-
-.PHONY: build
-build:
-	go build ${LDFLAGS} -o $(GOBIN)/pod-manager -v .
+lint: $(addsuffix /lint,$(MODULES))
