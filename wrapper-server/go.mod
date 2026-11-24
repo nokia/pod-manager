@@ -2,8 +2,6 @@ module github.com/kptdev/pod-manager/wrapper-server
 
 go 1.26.8
 
-replace github.com/kptdev/kpt/api => github.com/nokia/kpt/api v0.0.0-20261110090046-871b407a52d5
-
 replace github.com/kptdev/pod-manager/api => ../api
 
 require (
