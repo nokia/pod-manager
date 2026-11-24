@@ -17,10 +17,13 @@ SHELL := bash
 
 include make/info.mk
 
-.PHONY: all build lint $(addsuffix /build,$(MODULES)) $(addsuffix /lint,$(MODULES))
+.PHONY: all build lint test $(addsuffix /build,$(MODULES)) $(addsuffix /lint,$(MODULES)) $(addsuffix /test,$(MODULES))
 
 $(addsuffix /build,$(MODULES)): %/build:
 	$(MAKE) -C $* build
+
+$(addsuffix /test,$(MODULES)): %/test:
+	$(MAKE) -C $* test
 
 $(addsuffix /lint,$(MODULES)): %/lint:
 	$(MAKE) -C $* lint
@@ -28,3 +31,5 @@ $(addsuffix /lint,$(MODULES)): %/lint:
 build: $(addsuffix /build,$(MODULES))
 
 lint: $(addsuffix /lint,$(MODULES))
+
+test: $(addsuffix /test,$(MODULES))
