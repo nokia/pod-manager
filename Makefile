@@ -33,3 +33,5 @@ build: $(addsuffix /build,$(MODULES))
 lint: $(addsuffix /lint,$(MODULES))
 
 test: $(addsuffix /test,$(MODULES))
+
+include make/docker.mk
