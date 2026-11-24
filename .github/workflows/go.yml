@@ -23,8 +23,8 @@ name: Go
 on:
   pull_request:
   push:
-    branches-ignore:
-    - 'dependabot/**'
+    branches:
+      - main
 
 jobs:
   # Detect which path groups changed to conditionally skip expensive jobs.
