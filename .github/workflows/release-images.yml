@@ -13,14 +13,17 @@
 # limitations under the License.
 
 # Builds the container images and pushes them to ghcr.io when a semantic
-# version tag (for example v1.2.3 or v1.2.3-rc.1) is created.
+# version tag (v1.2.3) or pre-release tag (v1.2.3-pre.1) is created, following
+# VERSIONING.md in kptdev/governance. Pre-releases only publish their own
+# immutable tag and never move the floating (vX.Y, vX) or stable tags.
 # The api module is tagged separately (api/v...) and does not match.
 
 name: Release images
 on:
   push:
     tags:
-    - "v[0-9]+.[0-9]+.[0-9]+*"
+    - "v[0-9]+.[0-9]+.[0-9]+"
+    - "v[0-9]+.[0-9]+.[0-9]+-pre.[0-9]+"
 
 jobs:
   images:
@@ -39,28 +42,29 @@ jobs:
             dockerfile: wrapper-server/Dockerfile
     steps:
       - name: Check out code
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v4
+        uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4.4.0
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v4
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
       - name: Log in to ghcr.io
-        uses: docker/login-action@v4
+        uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Extract image metadata
         id: meta
-        uses: docker/metadata-action@v6
+        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
         with:
           images: ghcr.io/${{ github.repository_owner }}/${{ matrix.image }}
+          # "latest" is reserved for main builds, so disable the automatic one.
+          flavor: latest=false
           tags: |
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=semver,pattern={{major}},enable=${{ !contains(github.ref_name, '-') }}
+            type=raw,value=${{ github.ref_name }}
+            type=raw,value=stable,enable=${{ !contains(github.ref_name, '-') }}
       - name: Build and push
-        uses: docker/build-push-action@v7
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: .
           file: ${{ matrix.dockerfile }}
