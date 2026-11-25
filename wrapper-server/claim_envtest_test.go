@@ -62,7 +62,7 @@ func TestMain(m *testing.M) {
 	assets, err := envtest.SetupEnvtestDefaultBinaryAssetsDirectory()
 	exitOnError(nil, err)
 	env := &envtest.Environment{
-		CRDDirectoryPaths:        []string{filepath.Join("..", "function-pod-manager", "api", "generated", "crds")},
+		CRDDirectoryPaths:        []string{filepath.Join("..", "api", "generated", "crds")},
 		ErrorIfCRDPathMissing:    true,
 		DownloadBinaryAssets:     true,
 		BinaryAssetsDirectory:    assets,
