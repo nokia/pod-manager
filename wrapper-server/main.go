@@ -19,7 +19,7 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
-	contextsignal "k8s.io/apiserver/pkg/server"
+	contextsignal "k8s.io/apiserver/pkg/server" // TODO: vendor in contextsignal so we don't import k8s.io/apiserver
 	"k8s.io/klog/v2"
 )
 

@@ -22,7 +22,7 @@ import (
 	"github.com/kptdev/pod-manager/api/consts"
 	"github.com/kptdev/pod-manager/api/functionpodrequest/v1alpha1"
 	"github.com/kptdev/pod-manager/api/imageutil"
-	"github.com/kptdev/pod-manager/provisioner/util"
+	"github.com/kptdev/pod-manager/manager/provisioner/util"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/klog/v2"
 )

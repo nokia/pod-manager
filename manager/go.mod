@@ -1,4 +1,4 @@
-module github.com/kptdev/pod-manager
+module github.com/kptdev/pod-manager/manager
 
 go 1.26.8
 

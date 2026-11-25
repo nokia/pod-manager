@@ -20,7 +20,7 @@ import (
 
 	"github.com/kptdev/kpt/api/runneroptions"
 	"github.com/kptdev/pod-manager/api/consts"
-	"github.com/kptdev/pod-manager/server"
+	"github.com/kptdev/pod-manager/manager/server"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

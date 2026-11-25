@@ -33,11 +33,11 @@ COPY manager manager
 RUN --mount=type=cache,target=/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
     cd manager && CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} \
-    go build -trimpath -ldflags "-s -w" -o /out/pod-manager .
+    go build -trimpath -ldflags "-s -w" -o /out/manager .
 
 FROM ${DOCKERHUB_MIRROR}/alpine:${ALPINE_VERSION}
 RUN addgroup -g 10001 nonroot && \
     adduser -D -G nonroot -u 10001 nonroot
-COPY --from=build --chown=nonroot:nonroot --chmod=500 /out/pod-manager /pod-manager
+COPY --from=build --chown=nonroot:nonroot --chmod=500 /out/manager /manager
 USER nonroot:nonroot
-ENTRYPOINT ["/pod-manager"]
+ENTRYPOINT ["/manager"]

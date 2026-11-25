@@ -12,13 +12,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Shared Go module targets. Each module Makefile sets its variables (e.g.
-# BIN_NAME) and then includes this file.
+# Shared Go module targets. Each module Makefile sets MOD_TYPE (bin or lib) and
+# then includes this file.
 
 SHELL := bash
 .SHELLFLAGS := -exc
 
 include $(ROOT_DIR)/make/info.mk
+
+ifeq ($(filter $(MOD_TYPE),bin lib),)
+$(error MOD_TYPE must be "bin" or "lib", got "$(MOD_TYPE)")
+endif
+ifeq ($(MOD_TYPE),bin)
+# The binary is named after the module directory, e.g. manager or wrapper-server.
+BIN_NAME := $(notdir $(CURDIR))
+endif
 
 .PHONY: all
 all: fix vet fmt lint test tidy
@@ -52,9 +60,12 @@ test:
 vet:
 	go vet ./...
 
-# BIN_NAME is the binary name; if unset or empty, there is nothing to build.
+# bin: build the binary named after the module directory.
+# lib: nothing to link, so only check that every package compiles.
 .PHONY: build
 build:
-ifneq ($(BIN_NAME),)
+ifeq ($(MOD_TYPE),bin)
 	go build ${LDFLAGS} -o $(BUILD_DIR)/$(BIN_NAME) -v .
+else
+	go build ./...
 endif
