@@ -6,13 +6,13 @@ replace github.com/kptdev/pod-manager/api => ../api
 
 require (
 	github.com/google/go-containerregistry v0.22.1
-	github.com/kptdev/kpt/api v1.1.0
+	github.com/kptdev/kpt/api v1.1.1-pre.2.0.20261124184135-909caaa90f53
 	github.com/kptdev/pod-manager/api v0.0.0
-	github.com/prometheus/client_golang v1.24.1
+	github.com/prometheus/client_golang v1.25.0
 	github.com/spf13/cobra v1.10.2
 	github.com/stretchr/testify v1.12.1
-	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.68.0
-	go.opentelemetry.io/otel/exporters/prometheus v0.67.0
+	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.72.0
+	go.opentelemetry.io/otel/exporters/prometheus v0.69.0
 	go.opentelemetry.io/otel/metric v1.47.0
 	go.opentelemetry.io/otel/sdk/metric v1.47.0
 	google.golang.org/grpc v1.85.0
@@ -22,7 +22,7 @@ require (
 	k8s.io/apiserver v0.37.2
 	k8s.io/client-go v0.37.2
 	k8s.io/klog/v2 v2.140.0
-	sigs.k8s.io/controller-runtime v0.24.1
+	sigs.k8s.io/controller-runtime v0.25.3
 )
 
 require (
