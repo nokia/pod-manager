@@ -34,4 +34,10 @@ lint: $(addsuffix /lint,$(MODULES))
 
 test: $(addsuffix /test,$(MODULES))
 
+.PHONY: api/generate generate
+api/generate:
+	$(MAKE) -C api generate
+
+generate: api/generate
+
 include make/docker.mk

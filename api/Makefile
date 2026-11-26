@@ -16,3 +16,8 @@ MOD_TYPE := lib
 
 include ../make/info.mk
 include ../make/go.mk
+
+.PHONY: generate
+generate:
+	rm -rf generated
+	YEAR_GEN=$(YEAR_GEN) go generate ./...

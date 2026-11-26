@@ -12,8 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-GOLANG_VERSION    := 1.26.8
+GOLANG_VERSION        := 1.26.8
 GOLANGCI_LINT_VERSION := 2.15.0
+
+YEAR_GEN := $(shell date '+%Y')
 
 GOBIN := $(shell go env GOPATH)/bin
 ROOT_DIR := $(abspath $(dir $(lastword $(MAKEFILE_LIST)))/..)
