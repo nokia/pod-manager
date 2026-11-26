@@ -15,7 +15,7 @@
 # Build from the repository root, because the module depends on ../api:
 #   docker build -f wrapper-server/Dockerfile .
 
-ARG GO_VERSION=1.26.8
+ARG GO_VERSION=1.26
 ARG ALPINE_VERSION=3
 # Registry mirror for Docker Hub images, e.g. --build-arg DOCKERHUB_MIRROR=mirror.example.com
 ARG DOCKERHUB_MIRROR=docker.io

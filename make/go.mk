@@ -46,10 +46,10 @@ tidy:
 # if the local version of golangci-lint matches the one we want, we can use that without overhead
 .PHONY: lint
 lint:
-	@if [[ `command -v golangci-lint` && `golangci-lint version --short` == $(GOLANGCI_LINT_VERSION) ]]; then \
+	@if [[ `command -v golangci-lint` && `golangci-lint version --short` == $(LINTER_VERSION) ]]; then \
 		golangci-lint run -v ./...; \
 	else \
-		go run github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v$(GOLANGCI_LINT_VERSION) run -v ./...; \
+		go run github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v$(LINTER_VERSION) run -v ./...; \
 	fi
 
 .PHONY: test
