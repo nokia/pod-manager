@@ -23,6 +23,9 @@ import (
 	"k8s.io/klog/v2"
 )
 
+// version is set at build time with -ldflags "-X main.version=...".
+var version = "unknown"
+
 // exit, setupSignals, and runServer are the process edges. Tests replace them
 // so a failed command does not terminate the test binary.
 var (
@@ -52,6 +55,7 @@ func buildRootCommand() *cobra.Command {
 		Short:         "Function Evaluator Pod: gRPC server with FunctionPodRequest claim controller",
 		SilenceUsage:  true,
 		SilenceErrors: true,
+		Version:       version,
 		RunE:          runWrapperServer,
 		Args:          cobra.MinimumNArgs(1),
 	}

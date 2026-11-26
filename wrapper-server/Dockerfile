@@ -26,6 +26,8 @@ ARG TARGETARCH
 # Optional Go module proxy and checksum database settings
 ARG GOPROXY
 ARG GOSUMDB
+# Version reported by the binary, e.g. v1.2.3
+ARG VERSION=unknown
 WORKDIR /src
 
 COPY api api
@@ -33,7 +35,7 @@ COPY wrapper-server wrapper-server
 RUN --mount=type=cache,target=/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
     cd wrapper-server && CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} \
-    go build -trimpath -ldflags "-s -w" -o /out/wrapper-server .
+    go build -trimpath -ldflags "-s -w -X main.version=${VERSION}" -o /out/wrapper-server .
 
 # The binary is statically linked, so it can also be copied into other images.
 FROM ${DOCKERHUB_MIRROR}/alpine:${ALPINE_VERSION}

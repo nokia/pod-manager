@@ -12,18 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Builds the container images and pushes them to ghcr.io when a semantic
-# version tag (v1.2.3) or pre-release tag (v1.2.3-pre.1) is created, following
-# VERSIONING.md in kptdev/governance. Pre-releases only publish their own
-# immutable tag and never move the floating (vX.Y, vX) or stable tags.
-# The api module is tagged separately (api/v...) and does not match.
+# Builds the container images and pushes them to ghcr.io for a release tag. It
+# is called by release.yml once the release tags exist, and follows VERSIONING.md
+# in kptdev/governance: every release publishes its own immutable tag (v1.2.3 or
+# v1.2.3-pre.1), and only non-prerelease releases move the stable tag.
 
 name: Release images
 on:
-  push:
-    tags:
-    - "v[0-9]+.[0-9]+.[0-9]+"
-    - "v[0-9]+.[0-9]+.[0-9]+-pre.[0-9]+"
+  workflow_call:
+    inputs:
+      version:
+        description: Release version and tag to build, e.g. v1.2.3 or v1.2.3-pre.1
+        required: true
+        type: string
 
 jobs:
   images:
@@ -43,6 +44,8 @@ jobs:
     steps:
       - name: Check out code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: refs/tags/${{ inputs.version }}
       - name: Set up QEMU
         uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4.4.0
       - name: Set up Docker Buildx
@@ -61,8 +64,8 @@ jobs:
           # "latest" is reserved for main builds, so disable the automatic one.
           flavor: latest=false
           tags: |
-            type=raw,value=${{ github.ref_name }}
-            type=raw,value=stable,enable=${{ !contains(github.ref_name, '-') }}
+            type=raw,value=${{ inputs.version }}
+            type=raw,value=stable,enable=${{ !contains(inputs.version, '-') }}
       - name: Build and push
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
@@ -70,6 +73,7 @@ jobs:
           file: ${{ matrix.dockerfile }}
           platforms: linux/amd64,linux/arm64
           push: true
+          build-args: VERSION=${{ inputs.version }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha,scope=${{ matrix.image }}

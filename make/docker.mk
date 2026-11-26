@@ -37,7 +37,8 @@ DOCKER_BUILD_ARGS := \
 	--build-arg 'GOPROXY=$(GOPROXY)' \
 	--build-arg 'GOSUMDB=$(GOSUMDB)' \
 	--build-arg 'GO_VERSION=$(GO_VERSION)' \
-	--build-arg 'ALPINE_VERSION=$(ALPINE_VERSION)'
+	--build-arg 'ALPINE_VERSION=$(ALPINE_VERSION)' \
+	--build-arg 'VERSION=$(IMAGE_TAG)'
 ifneq ($(filter 1 true TRUE True,$(DOCKER_NETWORK_HOST)),)
     DOCKER_BUILD_ARGS += --network host
 endif

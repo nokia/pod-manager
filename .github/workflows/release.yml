@@ -1,0 +1,245 @@
+# Copyright 2026 The kpt Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Lock-step release of all modules, started manually.
+#
+# main keeps its replace directives (api => ../api), so everything on main is
+# built and tested against the code in the same commit. A release works like the
+# Kubernetes staging repos do:
+#   1. tag the api module as api/vX.Y.Z on the chosen main commit,
+#   2. on a detached release commit that is never pushed to a branch, drop the
+#      replace directives and require api@vX.Y.Z in manager and wrapper-server,
+#   3. verify that commit, then tag it as manager/vX.Y.Z, wrapper-server/vX.Y.Z
+#      and vX.Y.Z,
+#   4. build and push the images from the vX.Y.Z tag,
+#   5. create the GitHub release vX.Y.Z.
+# Only tags are pushed, so no branch protection bypass is needed. Pre-releases
+# use the form vX.Y.Z-pre.N, see VERSIONING.md in kptdev/governance.
+#
+# Tags pushed with GITHUB_TOKEN do not trigger other workflows, so the images are
+# built by calling release-images.yml directly.
+
+name: Release
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to release, e.g. v1.2.3 or v1.2.3-pre.1"
+        required: true
+        type: string
+      # TODO: during dry run, print what would be done, what tags and commits would be pushed, what images would be built, etc
+      dry_run:
+        description: "Only validate the version and test the base commit, do not push anything"
+        required: false
+        default: false
+        type: boolean
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    name: tag
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      checks: read
+    outputs:
+      previous: ${{ steps.validate.outputs.previous }}
+    env:
+      VERSION: ${{ inputs.version }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Check out code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+      - name: Set up Go
+        uses: actions/setup-go@d8cbb8045d7f43706b9177cceb36c1f91a6644d5 # v7.1.0
+        with:
+          go-version-file: manager/go.mod
+          cache-dependency-path: |
+            api/go.sum
+            manager/go.sum
+            wrapper-server/go.sum
+
+      # TODO: extract to script
+      - name: Validate version and base commit
+        id: validate
+        run: |
+          if [[ "$GITHUB_REF" != "refs/heads/main" ]]; then
+            echo "::error::Releases must be started from main, not $GITHUB_REF"
+            exit 1
+          fi
+          if [[ ! "$VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-pre\.[0-9]+)?$ ]]; then
+            echo "::error::Version '$VERSION' must look like v1.2.3 or v1.2.3-pre.1"
+            exit 1
+          fi
+          for tag in "$VERSION" "api/$VERSION" "manager/$VERSION" "wrapper-server/$VERSION"; do
+            if git rev-parse -q --verify "refs/tags/$tag" >/dev/null; then
+              echo "::error::Tag $tag already exists"
+              exit 1
+            fi
+          done
+
+          # The new version must be newer than every existing release. With sort -V,
+          # "~" sorts before everything, so v1.2.3-pre.1 is older than v1.2.3.
+          previous=$(git tag --list 'v[0-9]*' | sed 's/-pre\./~pre./' | sort -V | tail -n 1 | sed 's/~pre\./-pre./')
+          if [[ -n "$previous" ]]; then
+            newest=$(printf '%s\n%s\n' "${previous/-pre./~pre.}" "${VERSION/-pre./~pre.}" | sort -V | tail -n 1)
+            if [[ "$newest" != "${VERSION/-pre./~pre.}" ]]; then
+              echo "::error::$VERSION is not newer than the latest release $previous"
+              exit 1
+            fi
+          fi
+          echo "previous=$previous" >> "$GITHUB_OUTPUT"
+
+          # The commit being released must have passed the Go checks.
+          conclusion=$(gh api "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/check-runs" \
+            --jq '[.check_runs[] | select(.name == "go")][0].conclusion')
+          if [[ "$conclusion" != "success" ]]; then
+            echo "::error::The 'go' check on $GITHUB_SHA is '$conclusion', expected 'success'"
+            exit 1
+          fi
+
+      # This is the combination the CI tests on main: all modules, with replaces.
+      - name: Pre-flight build, lint and test with replaces
+        run: |
+          make build
+          make lint
+          make test
+
+      # TODO: is this just a generic bot placeholder? should we use the existing kpt bot's creds instead?
+      - name: Configure git
+        if: ${{ !inputs.dry_run }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      # Pushed first, because the release commit has to resolve it as a dependency.
+      - name: Tag and push api
+        if: ${{ !inputs.dry_run }}
+        run: |
+          git tag "api/$VERSION"
+          git push origin "refs/tags/api/$VERSION"
+          echo "PUSHED_TAGS=api/$VERSION" >> "$GITHUB_ENV"
+
+      - name: Create release commit
+        if: ${{ !inputs.dry_run }}
+        env:
+          # The new api tag may not be on the proxy yet, so fall back to the origin and
+          # skip the checksum database, which would not know the version either.
+          GOPROXY: https://proxy.golang.org,direct
+          GONOSUMDB: github.com/kptdev/pod-manager/*
+        run: |
+          git switch --detach
+          for module in manager wrapper-server; do
+            (cd "$module" && go mod edit \
+              -dropreplace=github.com/kptdev/pod-manager/api \
+              -require="github.com/kptdev/pod-manager/api@$VERSION")
+          done
+          make tidy
+          git add manager/go.mod manager/go.sum wrapper-server/go.mod wrapper-server/go.sum
+          git commit -m "Release $VERSION"
+          git status --short
+
+      # TODO: just call the existing action for the replace and pseudo checks, not a local script copy
+      - name: Verify release commit
+        if: ${{ !inputs.dry_run }}
+        run: |
+          for module in api manager wrapper-server; do
+            scripts/check-go-mod.sh "$module"
+          done
+          make build
+          make lint
+          make test
+
+      - name: Tag and push release commit
+        if: ${{ !inputs.dry_run }}
+        run: |
+          git tag "manager/$VERSION"
+          git tag "wrapper-server/$VERSION"
+          git tag "$VERSION"
+          git push origin "refs/tags/manager/$VERSION" "refs/tags/wrapper-server/$VERSION" "refs/tags/$VERSION"
+          echo "PUSHED_TAGS=$PUSHED_TAGS manager/$VERSION wrapper-server/$VERSION $VERSION" >> "$GITHUB_ENV"
+
+      # Only removes tags pushed by this run, so earlier releases are never touched.
+      # TODO: if the new api module tag gets pulled through the proxy, we have to retract it on failure
+      #       maybe do some other hack where we disable proxy.golang.org and "direct" pulls from local tags?
+      - name: Remove pushed tags on failure
+        if: ${{ failure() && env.PUSHED_TAGS != '' }}
+        run: |
+          for tag in $PUSHED_TAGS; do
+            git push origin --delete "refs/tags/$tag" || true
+          done
+
+  images:
+    name: images
+    needs: release
+    if: ${{ !inputs.dry_run }}
+    permissions:
+      contents: read
+      packages: write
+    uses: ./.github/workflows/release-images.yml
+    with:
+      version: ${{ inputs.version }}
+
+  publish:
+    name: publish
+    needs: [release, images]
+    if: ${{ !inputs.dry_run }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      VERSION: ${{ inputs.version }}
+      PREVIOUS: ${{ needs.release.outputs.previous }}
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - name: Create GitHub release
+        run: |
+          args=(--verify-tag --title "$VERSION" --generate-notes)
+          if [[ -n "$PREVIOUS" ]]; then
+            args+=(--notes-start-tag "$PREVIOUS")
+          fi
+          if [[ "$VERSION" == *-pre.* ]]; then
+            args+=(--prerelease)
+          fi
+          gh release create "$VERSION" "${args[@]}"
+      - name: Set up Go
+        uses: actions/setup-go@d8cbb8045d7f43706b9177cceb36c1f91a6644d5 # v7.1.0
+        with:
+          go-version: stable
+          cache: false
+      # The module proxy can lag behind a new tag, so retry for a while. A failure
+      # here does not undo the release.
+      - name: Check that the binary can be installed
+        continue-on-error: true
+        env:
+          GOPROXY: https://proxy.golang.org,direct
+        run: |
+          for attempt in 1 2 3 4 5; do
+            if go install "github.com/kptdev/pod-manager/manager@$VERSION"; then
+              exit 0
+            fi
+            echo "Attempt $attempt failed, retrying in 30s"
+            sleep 30
+          done
+          exit 1

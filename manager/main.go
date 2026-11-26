@@ -24,6 +24,9 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 )
 
+// version is set at build time with -ldflags "-X main.version=...".
+var version = "unknown"
+
 func main() {
 	klog.InitFlags(nil)
 	opts := server.DefaultOptions()
@@ -41,6 +44,7 @@ func newCommand(opts *server.Options) *cobra.Command {
 		Long:          "A leader-elected controller that keeps a pool of Function Evaluator pods for KRM function evaluation requests.",
 		SilenceUsage:  true,
 		SilenceErrors: true,
+		Version:       version,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			return server.Start(ctrl.SetupSignalHandler(), *opts)
 		},
