@@ -13,7 +13,7 @@
 # limitations under the License.
 
 # Builds the container images on pull requests without pushing them, and
-# checks that each image starts. Releases are pushed by release-images.yml.
+# checks that each image starts. Releases are built and pushed by goreleaser, see release.yml.
 #
 # Do not use workflow-level paths-ignore for required checks.
 # GitHub leaves skipped required workflows Pending forever.

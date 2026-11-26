@@ -20,6 +20,7 @@
 # Usage: check-go-mod.sh <module-dir> [allowed-replaced-module...]
 #
 # Adapted from the check-go-mod-replace action in kptdev/kpt.
+# TODO: use that action directly once it also rejects pseudo-versions.
 
 set -euo pipefail
 

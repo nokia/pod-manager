@@ -1,0 +1,109 @@
+# Copyright 2026 The kpt Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Builds the release artifacts (binaries, archives, checksums, container images)
+# and creates the GitHub release. It is run by the release workflow on the release
+# commit, which carries the lock-step tags (see scripts/prepare-release.sh):
+#   vX.Y.Z, api/vX.Y.Z, manager/vX.Y.Z and wrapper-server/vX.Y.Z
+# The workflow sets GORELEASER_CURRENT_TAG and GORELEASER_PREVIOUS_TAG, because the
+# previous release commit is not an ancestor of this one.
+
+version: 2
+project_name: pod-manager
+
+git:
+  ignore_tags:
+    - "api/*"
+    - "manager/*"
+    - "wrapper-server/*"
+
+builds:
+  - id: pod-manager
+    dir: manager
+    main: .
+    binary: pod-manager
+    env:
+      - CGO_ENABLED=0
+    goos: [linux, darwin]
+    goarch: [amd64, arm64]
+    flags: [-trimpath]
+    ldflags:
+      - -s -w -X main.version={{ .Tag }}
+  - id: wrapper-server
+    dir: wrapper-server
+    main: .
+    binary: wrapper-server
+    env:
+      - CGO_ENABLED=0
+    goos: [linux, darwin]
+    goarch: [amd64, arm64]
+    flags: [-trimpath]
+    ldflags:
+      - -s -w -X main.version={{ .Tag }}
+
+archives:
+  - id: pod-manager
+    ids: [pod-manager]
+    name_template: "pod-manager_{{ .Os }}_{{ .Arch }}-{{ .Version }}"
+    files:
+      - LICENSE
+  - id: wrapper-server
+    ids: [wrapper-server]
+    name_template: "wrapper-server_{{ .Os }}_{{ .Arch }}-{{ .Version }}"
+    files:
+      - LICENSE
+
+checksum:
+  name_template: checksums.txt
+
+# The same tags as the previous images: the exact version, and "stable" for
+# releases that are not pre-releases (see VERSIONING.md in kptdev/governance).
+dockers_v2:
+  - id: pod-manager
+    ids: [pod-manager]
+    dockerfile: manager/Dockerfile.goreleaser
+    images:
+      - ghcr.io/kptdev/pod-manager
+    tags:
+      - "{{ .Tag }}"
+      - "{{ if not .Prerelease }}stable{{ end }}"
+    platforms: [linux/amd64, linux/arm64]
+    labels:
+      org.opencontainers.image.source: https://github.com/kptdev/pod-manager
+      org.opencontainers.image.version: "{{ .Tag }}"
+      org.opencontainers.image.revision: "{{ .FullCommit }}"
+      org.opencontainers.image.licenses: Apache-2.0
+  - id: wrapper-server
+    ids: [wrapper-server]
+    dockerfile: wrapper-server/Dockerfile.goreleaser
+    images:
+      - ghcr.io/kptdev/wrapper-server
+    tags:
+      - "{{ .Tag }}"
+      - "{{ if not .Prerelease }}stable{{ end }}"
+    platforms: [linux/amd64, linux/arm64]
+    labels:
+      org.opencontainers.image.source: https://github.com/kptdev/pod-manager
+      org.opencontainers.image.version: "{{ .Tag }}"
+      org.opencontainers.image.revision: "{{ .FullCommit }}"
+      org.opencontainers.image.licenses: Apache-2.0
+
+changelog:
+  use: github-native
+
+release:
+  github:
+    owner: kptdev
+    name: pod-manager
+  prerelease: auto

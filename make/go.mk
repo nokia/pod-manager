@@ -24,8 +24,9 @@ ifeq ($(filter $(MOD_TYPE),bin lib),)
 $(error MOD_TYPE must be "bin" or "lib", got "$(MOD_TYPE)")
 endif
 ifeq ($(MOD_TYPE),bin)
-# The binary is named after the module directory, e.g. manager or wrapper-server.
-BIN_NAME := $(notdir $(CURDIR))
+# The binary is named after the module directory by default (like wrapper-server),
+# which can be overridden by the module's Makefile (like manager ~> pod-manager).
+BIN_NAME ?= $(notdir $(CURDIR))
 endif
 
 .PHONY: all

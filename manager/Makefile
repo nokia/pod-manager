@@ -13,6 +13,7 @@
 # limitations under the License.
 
 MOD_TYPE := bin
+BIN_NAME := pod-manager
 
 include ../make/info.mk
 include ../make/go.mk
