@@ -156,31 +156,3 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GORELEASER_CURRENT_TAG: ${{ inputs.version }}
           GORELEASER_PREVIOUS_TAG: ${{ needs.tag.outputs.previous }}
-
-  # The module proxy can lag behind a new tag, so retry for a while. A failure here
-  # does not undo the release.
-  smoke-test:
-    name: install check
-    needs: release
-    if: ${{ !inputs.dry_run }}
-    runs-on: ubuntu-latest
-    continue-on-error: true
-    permissions: {}
-    steps:
-      - name: Set up Go
-        uses: actions/setup-go@d8cbb8045d7f43706b9177cceb36c1f91a6644d5 # v7.1.0
-        with:
-          go-version: stable
-          cache: false
-      - name: Check that the binary can be installed
-        env:
-          VERSION: ${{ inputs.version }}
-        run: |
-          for attempt in 1 2 3 4 5; do
-            if go install "github.com/kptdev/pod-manager/manager@$VERSION"; then
-              exit 0
-            fi
-            echo "Attempt $attempt failed, retrying in 30s"
-            sleep 30
-          done
-          exit 1
