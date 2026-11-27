@@ -1,0 +1,176 @@
+# Copyright 2026 The kpt Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Lock-step release of all modules, started manually.
+#
+# main keeps its replace directives (api => ../api), so everything on main is
+# built and tested against the code in the same commit. A release works like the
+# Kubernetes staging repos do:
+#   1. scripts/validate-release.sh checks the version and the commit,
+#   2. scripts/prepare-release.sh tags the api module as api/vX.Y.Z, creates a
+#      release commit that is never pushed to a branch (replace directives dropped,
+#      api@vX.Y.Z required), verifies it, and tags it as manager/vX.Y.Z,
+#      wrapper-server/vX.Y.Z and vX.Y.Z,
+#   3. only then are the four tags pushed, together, and
+#   4. goreleaser builds the binaries and images and creates the GitHub release.
+# Nothing is pushed before the release commit is verified, because the Go module
+# proxy remembers a version forever once it has seen it. If a job fails after the
+# push (goreleaser), rerun only that failed job, e.g. "Re-run failed jobs". It uses
+# the tags that already exist. Do not start a new run with the same version, because
+# the validation rejects existing tags, and do not delete the tags either.
+# If the push itself failed, nothing was pushed, so a new run is fine.
+# Pre-releases use the form vX.Y.Z-pre.N, see VERSIONING.md in kptdev/governance.
+#
+# Tags pushed with GITHUB_TOKEN do not trigger other workflows, so nothing else
+# listens for them.
+
+name: Release
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to release, e.g. v1.2.3 or v1.2.3-pre.1"
+        required: true
+        type: string
+      dry_run:
+        description: "Do everything except pushing tags, images and the release, and summarize what would be done"
+        required: false
+        default: false
+        type: boolean
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  tag:
+    name: tag
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      checks: read
+    outputs:
+      previous: ${{ steps.validate.outputs.previous }}
+    env:
+      VERSION: ${{ inputs.version }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Check out code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+      - name: Set up Go
+        uses: actions/setup-go@d8cbb8045d7f43706b9177cceb36c1f91a6644d5 # v7.1.0
+        with:
+          go-version-file: manager/go.mod
+          cache-dependency-path: |
+            api/go.sum
+            manager/go.sum
+            wrapper-server/go.sum
+
+      - name: Validate version and base commit
+        id: validate
+        run: scripts/validate-release.sh "$VERSION"
+
+      # This is the combination the CI tests on main: all modules, with replaces.
+      - name: Pre-flight build, lint and test with replaces
+        run: |
+          make build
+          make lint
+          make test
+
+      # The release commit is authored by the kptdev-ci-bot app. It is pushed with the
+      # workflow token, which is enough to create tags, unless a tag ruleset needs a
+      # bypass entry.
+      - name: Configure git
+        run: |
+          git config user.name "kptdev-ci-bot[bot]"
+          git config user.email "295801537+kptdev-ci-bot[bot]@users.noreply.github.com"
+
+      - name: Prepare and verify release commit (dry run)
+        if: ${{ inputs.dry_run }}
+        run: scripts/prepare-release.sh --dry-run "$VERSION"
+
+      - name: Prepare and verify release commit
+        if: ${{ !inputs.dry_run }}
+        run: scripts/prepare-release.sh "$VERSION"
+
+      # Atomic, so either all four tags exist on the remote or none do.
+      - name: Push tags
+        if: ${{ !inputs.dry_run }}
+        run: |
+          git push --atomic origin \
+            "refs/tags/api/$VERSION" \
+            "refs/tags/manager/$VERSION" \
+            "refs/tags/wrapper-server/$VERSION" \
+            "refs/tags/$VERSION"
+
+  release:
+    name: goreleaser
+    needs: tag
+    if: ${{ !inputs.dry_run }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+    steps:
+      - name: Check out release tag
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: refs/tags/${{ inputs.version }}
+          fetch-depth: 0
+      - name: Set up Go
+        uses: actions/setup-go@d8cbb8045d7f43706b9177cceb36c1f91a6644d5 # v7.1.0
+        with:
+          go-version-file: manager/go.mod
+          cache: false
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+      - name: Log in to ghcr.io
+        uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      # The api module is github.com/kptdev/pod-manager/api, but the repository this
+      # runs in may be a different one (a fork). Resolve the api tag from this checkout,
+      # like scripts/prepare-release.sh does, so the builds below find it in the module cache
+      # instead of asking the proxy or GitHub.
+      - name: Download the api module from this repository
+        working-directory: manager
+        env:
+          GOPROXY: https://proxy.golang.org,direct
+          GONOPROXY: github.com/kptdev/pod-manager/*
+          GONOSUMDB: github.com/kptdev/pod-manager/*
+          GIT_CONFIG_COUNT: "1"
+          GIT_CONFIG_KEY_0: url.file://${{ github.workspace }}.insteadOf
+          GIT_CONFIG_VALUE_0: https://github.com/kptdev/pod-manager
+        run: go mod download github.com/kptdev/pod-manager/api
+
+      # The previous release commit is not an ancestor of this one, so goreleaser
+      # cannot find the previous tag by itself.
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@a4f02ab5355a589de60d917a659ce617ed19b3de # v7.3.0
+        with:
+          distribution: goreleaser
+          version: "~> v2"
+          args: release --clean
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GORELEASER_CURRENT_TAG: ${{ inputs.version }}
+          GORELEASER_PREVIOUS_TAG: ${{ needs.tag.outputs.previous }}

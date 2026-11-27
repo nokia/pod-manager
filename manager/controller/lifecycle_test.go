@@ -205,7 +205,6 @@ func TestWildcardFunctionConfigSuppliesTheLimits(t *testing.T) {
 	assert.Equal(t, 4, got.PreferredMaxQueueLength)
 	assert.Equal(t, 3, got.MaxParallelExecutions)
 	assert.Equal(t, 15*time.Minute, got.PodTTL)
-	assert.False(t, containsStar(nil))
 	assert.Nil(t, NewFunctionConfigStore().executor(testKrmFunction, "v1", runneroptions.GHCRImagePrefix))
 }
 

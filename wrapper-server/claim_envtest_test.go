@@ -107,8 +107,7 @@ func exitOnError(env *envtest.Environment, err error) {
 // TestWrapperClaimsACreatedFunctionPodRequest starts the wrapper the way a pod does
 // and checks that a Created request is claimed, then evaluated by a pass-through function.
 func TestWrapperClaimsACreatedFunctionPodRequest(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 	ns := newNamespace(t, ctx)
 	createRequest(t, ctx, requestSpec{name: claimTestRequest, namespace: ns})
 
@@ -143,8 +142,7 @@ func TestWrapperClaimsACreatedFunctionPodRequest(t *testing.T) {
 }
 
 func TestWrapperClaimsTheOldestRequestAndLeavesTheNewerCreated(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 	ns := newNamespace(t, ctx)
 	createRequest(t, ctx, requestSpec{name: "fnreq-older", namespace: ns})
 	time.Sleep(time.Second)
@@ -156,8 +154,7 @@ func TestWrapperClaimsTheOldestRequestAndLeavesTheNewerCreated(t *testing.T) {
 }
 
 func TestWrapperSkipsAMismatchedVersionConstraint(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 	ns := newNamespace(t, ctx)
 	createRequest(t, ctx, requestSpec{name: "fnreq-other-version", namespace: ns, constraint: "~9.0.0"})
 	time.Sleep(time.Second)
@@ -169,8 +166,7 @@ func TestWrapperSkipsAMismatchedVersionConstraint(t *testing.T) {
 }
 
 func TestWrapperClaimsAnExactVersionConstraint(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 	ns := newNamespace(t, ctx)
 	createRequest(t, ctx, requestSpec{name: "fnreq-exact", namespace: ns, constraint: claimTestVersion})
 
@@ -179,8 +175,7 @@ func TestWrapperClaimsAnExactVersionConstraint(t *testing.T) {
 }
 
 func TestWrapperIgnoresAnotherImageKey(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 	ns := newNamespace(t, ctx)
 	otherKey, err := imageutil.ImageKey("example.com/krm/other")
 	require.NoError(t, err)
@@ -194,8 +189,7 @@ func TestWrapperIgnoresAnotherImageKey(t *testing.T) {
 }
 
 func TestWrapperSkipsARequestPastItsDeadline(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 	ns := newNamespace(t, ctx)
 	past := metav1.NewTime(time.Now().Add(-time.Minute))
 	createRequest(t, ctx, requestSpec{name: "fnreq-expired", namespace: ns, deadline: &past})
@@ -208,8 +202,7 @@ func TestWrapperSkipsARequestPastItsDeadline(t *testing.T) {
 }
 
 func TestWrapperReleasesTheClaimAfterGraceAndClaimsTheNextRequest(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 	ns := newNamespace(t, ctx)
 	// The first request must be claimable at startup and unclaimable by the time grace
 	// fires, so the waiting request is the one that gets the freed slot.
@@ -239,8 +232,7 @@ func TestWrapperReleasesTheClaimAfterGraceAndClaimsTheNextRequest(t *testing.T) 
 }
 
 func TestWrapperKeepsTheClaimItAdoptedOnStartup(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 	ns := newNamespace(t, ctx)
 	createRequest(t, ctx, requestSpec{
 		name:         "fnreq-adopted",
@@ -259,8 +251,7 @@ func TestWrapperKeepsTheClaimItAdoptedOnStartup(t *testing.T) {
 }
 
 func TestWrapperClaimsACreatedRequestWhileAnotherPodHoldsOne(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 	ns := newNamespace(t, ctx)
 	createRequest(t, ctx, requestSpec{
 		name:         "fnreq-theirs",

@@ -12,5 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+MOD_TYPE := lib
+
 include ../make/info.mk
 include ../make/go.mk
+
+.PHONY: generate
+generate:
+	rm -rf generated
+	YEAR_GEN=$(YEAR_GEN) go generate ./...

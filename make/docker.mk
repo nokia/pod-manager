@@ -27,7 +27,7 @@ export GOPROXY := $(subst ",,$(GOPROXY))
 export GOSUMDB := $(subst ",,$(GOSUMDB))
 
 IMAGE_PREFIX ?= ghcr.io/kptdev
-IMAGE_TAG ?= dev
+IMAGE_TAG ?= unstable
 DOCKER ?= docker
 # Set DOCKER_NETWORK_HOST=true to build with host networking (e.g. behind a proxy)
 DOCKER_NETWORK_HOST ?= false
@@ -35,7 +35,10 @@ DOCKER_NETWORK_HOST ?= false
 DOCKER_BUILD_ARGS := \
 	--build-arg 'DOCKERHUB_MIRROR=$(DOCKERHUB_MIRROR)' \
 	--build-arg 'GOPROXY=$(GOPROXY)' \
-	--build-arg 'GOSUMDB=$(GOSUMDB)'
+	--build-arg 'GOSUMDB=$(GOSUMDB)' \
+	--build-arg 'GO_VERSION=$(GO_VERSION)' \
+	--build-arg 'ALPINE_VERSION=$(ALPINE_VERSION)' \
+	--build-arg 'VERSION=$(IMAGE_TAG)'
 ifneq ($(filter 1 true TRUE True,$(DOCKER_NETWORK_HOST)),)
     DOCKER_BUILD_ARGS += --network host
 endif

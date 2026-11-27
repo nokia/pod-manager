@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+MOD_TYPE := bin
 BIN_NAME := pod-manager
 
 include ../make/info.mk

@@ -28,7 +28,7 @@ import (
 	"github.com/kptdev/kpt/api/utils/image"
 	"github.com/kptdev/pod-manager/api/consts"
 	"github.com/kptdev/pod-manager/api/imageutil"
-	"github.com/kptdev/pod-manager/provisioner/util"
+	"github.com/kptdev/pod-manager/manager/provisioner/util"
 	functionconfig "github.com/kptdev/porch/api/porchconfig/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"

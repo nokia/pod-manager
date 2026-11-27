@@ -15,11 +15,12 @@
 package controller
 
 import (
+	"slices"
 	"strings"
 	"sync"
 
 	"github.com/kptdev/kpt/api/utils/image"
-	"github.com/kptdev/pod-manager/provisioner/util"
+	"github.com/kptdev/pod-manager/manager/provisioner/util"
 	functionconfig "github.com/kptdev/porch/api/porchconfig/v1alpha1"
 	"k8s.io/apimachinery/pkg/types"
 )
@@ -131,7 +132,7 @@ func (s *FunctionConfigStore) executor(repository, version, prefix string) *func
 		if util.TagsMatch(version, config.Tags) {
 			return config
 		}
-		if len(config.Tags) == 0 || containsStar(config.Tags) {
+		if len(config.Tags) == 0 || slices.Contains(config.Tags, "*") {
 			wildcard = config
 		}
 	}
@@ -194,15 +195,6 @@ func repositoryMatchesFunction(item cachedFunctionConfig, repository, defaultPre
 			p = defaultPrefix
 		}
 		if strings.TrimRight(p, "/") == wantPrefix {
-			return true
-		}
-	}
-	return false
-}
-
-func containsStar(tags []string) bool {
-	for _, tag := range tags {
-		if tag == "*" {
 			return true
 		}
 	}

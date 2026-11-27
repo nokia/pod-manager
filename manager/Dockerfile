@@ -15,7 +15,7 @@
 # Build from the repository root, because the module depends on ../api:
 #   docker build -f manager/Dockerfile .
 
-ARG GO_VERSION=1.26.8
+ARG GO_VERSION=1.26
 ARG ALPINE_VERSION=3
 # Registry mirror for Docker Hub images, e.g. --build-arg DOCKERHUB_MIRROR=mirror.example.com
 ARG DOCKERHUB_MIRROR=docker.io
@@ -26,6 +26,8 @@ ARG TARGETARCH
 # Optional Go module proxy and checksum database settings
 ARG GOPROXY
 ARG GOSUMDB
+# Version reported by the binary, e.g. v1.2.3
+ARG VERSION=unknown
 WORKDIR /src
 
 COPY api api
@@ -33,7 +35,7 @@ COPY manager manager
 RUN --mount=type=cache,target=/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
     cd manager && CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} \
-    go build -trimpath -ldflags "-s -w" -o /out/pod-manager .
+    go build -trimpath -ldflags "-s -w -X main.version=${VERSION}" -o /out/pod-manager .
 
 FROM ${DOCKERHUB_MIRROR}/alpine:${ALPINE_VERSION}
 RUN addgroup -g 10001 nonroot && \

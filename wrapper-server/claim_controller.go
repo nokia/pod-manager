@@ -153,10 +153,7 @@ func (c *ClaimController) runClaimCycle(ctx context.Context) (ctrl.Result, error
 
 	if c.activeClaim != nil {
 		if requeue == 0 && c.ClaimGracePeriod > 0 && !c.activeClaim.evalStarted {
-			requeue = time.Until(c.activeClaim.claimedAt.Add(c.ClaimGracePeriod))
-			if requeue < 0 {
-				requeue = 0
-			}
+			requeue = max(time.Until(c.activeClaim.claimedAt.Add(c.ClaimGracePeriod)), 0)
 		}
 		klog.InfoS("claim cycle busy", "request", c.activeClaim.name, "pod", c.PodName, "requeue", requeue.String())
 		return ctrl.Result{RequeueAfter: requeue}, nil

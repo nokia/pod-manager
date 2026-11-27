@@ -31,7 +31,7 @@ import (
 // FunctionPodRequest is a client-owned request to evaluate a KRM function.
 // Spec is immutable after create. Status is a subresource.
 type FunctionPodRequestApplyConfiguration struct {
-	v1.TypeMetaApplyConfiguration    `json:",inline"`
+	v1.TypeMetaApplyConfiguration    `json:""`
 	*v1.ObjectMetaApplyConfiguration `json:"metadata,omitempty"`
 	Spec                             *FunctionPodRequestSpecApplyConfiguration   `json:"spec,omitempty"`
 	Status                           *FunctionPodRequestStatusApplyConfiguration `json:"status,omitempty"`
@@ -57,7 +57,7 @@ func FunctionPodRequest(name, namespace string) *FunctionPodRequestApplyConfigur
 // applied if another fieldManager has updated or force applied any of the previously applied fields.
 func ExtractFunctionPodRequestFrom(functionPodRequest *functionpodrequestv1alpha1.FunctionPodRequest, fieldManager string, subresource string) (*FunctionPodRequestApplyConfiguration, error) {
 	b := &FunctionPodRequestApplyConfiguration{}
-	err := managedfields.ExtractInto(functionPodRequest, internal.Parser().Type("com.github.kptdev.kpt.function-pod-manager.api.functionpodrequest.v1alpha1.FunctionPodRequest"), fieldManager, b, subresource)
+	err := managedfields.ExtractInto(functionPodRequest, internal.Parser().Type("com.github.kptdev.pod-manager.api.functionpodrequest.v1alpha1.FunctionPodRequest"), fieldManager, b, subresource)
 	if err != nil {
 		return nil, err
 	}
