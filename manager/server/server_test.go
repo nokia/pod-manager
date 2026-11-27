@@ -24,6 +24,7 @@ import (
 	"github.com/kptdev/pod-manager/api/consts"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -115,6 +116,21 @@ func TestManagerOptionsOmitNonPositiveLeaseDurations(t *testing.T) {
 	assert.Nil(t, got.RetryPeriod)
 	assert.Contains(t, got.Cache.DefaultNamespaces, "pods")
 	assert.Contains(t, got.Cache.DefaultNamespaces, "requests")
+	assert.Empty(t, got.Cache.ByObject)
+}
+
+func TestManagerOptionsScopesSecretCacheWhenPrivateRegistriesEnabled(t *testing.T) {
+	opts := DefaultOptions()
+	opts.PodNamespace = "pods"
+	opts.RequestNamespace = "requests"
+	opts.EnablePrivateRegistries = true
+	scheme := runtime.NewScheme()
+	require.NoError(t, clientgoscheme.AddToScheme(scheme))
+
+	got := managerOptions(opts, scheme)
+
+	require.NotNil(t, got.Cache.ByObject)
+	assert.Contains(t, got.Cache.ByObject, &corev1.Secret{})
 }
 
 func TestNewReconcilerCopiesProcessOptions(t *testing.T) {
@@ -127,7 +143,6 @@ func TestNewReconcilerCopiesProcessOptions(t *testing.T) {
 	opts.RequestNamespace = "requests"
 	opts.WrapperServerImage = "wrapper:test"
 	opts.DefaultImagePrefix = "example.com/functions"
-	opts.EnablePrivateRegistries = true
 	opts.MaxParallelPods = 3
 	opts.PodTTL = 12 * time.Minute
 	scheme := runtime.NewScheme()

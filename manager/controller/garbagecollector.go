@@ -85,6 +85,9 @@ func (gc *GarbageCollector) Tick(ctx context.Context) error {
 	}); err != nil {
 		return err
 	}
+	/*if err := gc.reconcileCreated(ctx, requests, pods, now); err != nil {
+		return err
+	}*/
 	if err := gc.reapAll(ctx, requests, pods, now); err != nil {
 		return err
 	}
@@ -121,6 +124,23 @@ func (gc *GarbageCollector) parallelism() int {
 	}
 	return gc.ReapParallelism
 }
+
+// reconcileCreated scales evaluator pods for Created requests when the watch queue misses an event.
+/*func (gc *GarbageCollector) reconcileCreated(ctx context.Context, requests []v1alpha1.FunctionPodRequest, pods []corev1.Pod, now time.Time) error {
+	var group errgroup.Group
+	group.SetLimit(gc.parallelism())
+	for i := range requests {
+		i := i
+		if phaseOf(&requests[i]) != v1alpha1.FunctionPodRequestPhaseCreated {
+			continue
+		}
+		group.Go(func() error {
+			_, err := gc.reconcile(ctx, &requests[i], requests, pods, now)
+			return err
+		})
+	}
+	return group.Wait()
+}*/
 
 func (gc *GarbageCollector) reapAll(ctx context.Context, requests []v1alpha1.FunctionPodRequest, pods []corev1.Pod, now time.Time) error {
 	var group errgroup.Group
