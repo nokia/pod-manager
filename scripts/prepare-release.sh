@@ -28,6 +28,8 @@
 # The caller pushes the tags, e.g. git push --atomic origin <the four tags>.
 #
 # With --dry-run, the repository is restored afterwards (the tags are deleted again).
+# Without it, the checkout is left on the detached release commit, with the tags
+# created. To undo a local run: git switch <your branch> and delete the four tags.
 #
 # Usage: prepare-release.sh [--dry-run] <version>
 # Needs a git identity (user.name and user.email) to create the release commit.

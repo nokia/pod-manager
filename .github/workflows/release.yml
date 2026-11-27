@@ -25,8 +25,11 @@
 #   3. only then are the four tags pushed, together, and
 #   4. goreleaser builds the binaries and images and creates the GitHub release.
 # Nothing is pushed before the release commit is verified, because the Go module
-# proxy remembers a version forever once it has seen it. If a step after the push
-# fails, rerun that job instead of deleting tags.
+# proxy remembers a version forever once it has seen it. If a job fails after the
+# push (goreleaser), rerun only that failed job, e.g. "Re-run failed jobs". It uses
+# the tags that already exist. Do not start a new run with the same version, because
+# the validation rejects existing tags, and do not delete the tags either.
+# If the push itself failed, nothing was pushed, so a new run is fine.
 # Pre-releases use the form vX.Y.Z-pre.N, see VERSIONING.md in kptdev/governance.
 #
 # Tags pushed with GITHUB_TOKEN do not trigger other workflows, so nothing else

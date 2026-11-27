@@ -13,7 +13,8 @@
 # limitations under the License.
 
 # Validates the goreleaser configuration and builds a snapshot release (binaries
-# and images, nothing is published), when the release configuration changes.
+# and images, nothing is published), when the release configuration or anything it
+# builds from changes (the Go modules, which also covers ldflags and module layout).
 #
 # Do not use workflow-level paths-ignore for required checks.
 # GitHub leaves skipped required workflows Pending forever.
@@ -41,6 +42,10 @@ jobs:
             release:
               - '.goreleaser.yaml'
               - '**/Dockerfile.goreleaser'
+              - 'api/**'
+              - 'manager/**'
+              - 'wrapper-server/**'
+              - 'LICENSE'
               - '.github/workflows/release-snapshot.yml'
 
   goreleaser-snapshot:

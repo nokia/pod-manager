@@ -74,10 +74,18 @@ fi
 if [[ "$skip_ci_check" == false ]]; then
   sha=$(git rev-parse HEAD)
   repo=${GITHUB_REPOSITORY:-$(gh repo view --json nameWithOwner --jq .nameWithOwner)}
-  conclusion=$(gh api "repos/$repo/commits/$sha/check-runs" \
-    --jq '[.check_runs[] | select(.name == "go")][0].conclusion')
+  # "<status> <conclusion>" of the check run named go, empty if there is none.
+  check=$(gh api "repos/$repo/commits/$sha/check-runs" \
+    --jq '[.check_runs[] | select(.name == "go")][0] // empty | "\(.status) \(.conclusion)"')
+  if [[ -z "$check" ]]; then
+    fail "No check named 'go' has been reported on $sha. The check was renamed (see the go-gate job in go.yml), skipped, or has not started yet. Wait for the Go workflow on main to finish, or rerun it."
+  fi
+  read -r status conclusion <<<"$check"
+  if [[ "$status" != "completed" ]]; then
+    fail "The 'go' check on $sha has not finished yet (status '$status'). Wait for it to pass."
+  fi
   if [[ "$conclusion" != "success" ]]; then
-    fail "The 'go' check on $sha is '$conclusion', expected 'success'"
+    fail "The 'go' check on $sha concluded '$conclusion', expected 'success'"
   fi
 fi
 
