@@ -2,12 +2,10 @@ module github.com/kptdev/pod-manager/wrapper-server
 
 go 1.26.11
 
-replace github.com/kptdev/pod-manager/api => ../api
-
 require (
 	github.com/google/go-containerregistry v0.22.1
 	github.com/kptdev/kpt/api v1.1.1-pre.3
-	github.com/kptdev/pod-manager/api v0.0.0
+	github.com/kptdev/pod-manager/api v0.0.1-pre.1
 	github.com/prometheus/client_golang v1.25.0
 	github.com/spf13/cobra v1.10.2
 	github.com/stretchr/testify v1.12.1

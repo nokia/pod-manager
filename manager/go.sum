@@ -88,6 +88,8 @@ github.com/klauspost/compress v1.19.2 h1:hMRETovs/pu/dVWN7zIT1PGG8t509MwT6bO7XSi
 github.com/klauspost/compress v1.19.2/go.mod h1:cwPg85FWrGar70rWktvGQj8/hthj3wpl0PGDogxkrSQ=
 github.com/kptdev/kpt/api v1.1.1-pre.3 h1:KUcnlgAfOtOyjq8XFQhacF7a1w9KM8AjB4IrTSHXlhE=
 github.com/kptdev/kpt/api v1.1.1-pre.3/go.mod h1:LuSVqprdt+EzdImUiuflSIVl630rxjJ6c1g/8dT+H/c=
+github.com/kptdev/pod-manager/api v0.0.1-pre.1 h1:P9zy3PE1lkC/5VqeWbNW5b539/KptkqCtPJ6KIGAXEY=
+github.com/kptdev/pod-manager/api v0.0.1-pre.1/go.mod h1:BC7kuLpHjjOeWgUd/mh2BSD4DfZS4YYn4Py/LI5tuLA=
 github.com/kptdev/porch/api v1.0.4-pre.4 h1:K7f9LqEoffm+HTIL+B5aJXHullNK/rbaxcdOXYfGYCM=
 github.com/kptdev/porch/api v1.0.4-pre.4/go.mod h1:x1BkEYSRUXHzENlaQGEIdS5hScZ3NymJn7b7S7REKOM=
 github.com/kylelemons/godebug v1.1.0 h1:RPNrshWIDI6G2gRW9EHilWtl7Z6Sb1BR0xunSBf0SNc=

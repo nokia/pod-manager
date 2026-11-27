@@ -121,6 +121,8 @@ github.com/klauspost/compress v1.20.1 h1:T7kKElXUMXrUJ2E9QhQhxFtcK5rPyLdsGZvdbLM
 github.com/klauspost/compress v1.20.1/go.mod h1:LUdAzn7YLVvxLpc7y3V1m40wESHTgc1422pwwBSKYuI=
 github.com/kptdev/kpt/api v1.1.1-pre.3 h1:KUcnlgAfOtOyjq8XFQhacF7a1w9KM8AjB4IrTSHXlhE=
 github.com/kptdev/kpt/api v1.1.1-pre.3/go.mod h1:LuSVqprdt+EzdImUiuflSIVl630rxjJ6c1g/8dT+H/c=
+github.com/kptdev/pod-manager/api v0.0.1-pre.1 h1:P9zy3PE1lkC/5VqeWbNW5b539/KptkqCtPJ6KIGAXEY=
+github.com/kptdev/pod-manager/api v0.0.1-pre.1/go.mod h1:BC7kuLpHjjOeWgUd/mh2BSD4DfZS4YYn4Py/LI5tuLA=
 github.com/kylelemons/godebug v1.1.0 h1:RPNrshWIDI6G2gRW9EHilWtl7Z6Sb1BR0xunSBf0SNc=
 github.com/kylelemons/godebug v1.1.0/go.mod h1:9/0rRGxNHcop5bhtWyNeEfOS8JIWk580+fNqagV/RAw=
 github.com/modern-go/concurrent v0.0.0-20180228061459-e0a39a4cb421/go.mod h1:6dJC0mAP4ikYIbvyc7fijjWJddQyLn8Ig3JB5CqoB9Q=
