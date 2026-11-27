@@ -27,12 +27,14 @@ import (
 	"github.com/kptdev/pod-manager/manager/controller"
 	"github.com/kptdev/pod-manager/manager/provisioner"
 	functionconfig "github.com/kptdev/porch/api/porchconfig/v1alpha1"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 )
@@ -197,6 +199,12 @@ func managerOptions(opts Options, scheme *runtime.Scheme) ctrl.Options {
 		opts.PodNamespace:     {},
 		opts.RequestNamespace: {},
 	}
+	cacheOpts := cache.Options{DefaultNamespaces: namespaces}
+	if opts.EnablePrivateRegistries || opts.EnablePrivateRegistriesTLS {
+		cacheOpts.ByObject = map[client.Object]cache.ByObject{
+			&corev1.Secret{}: {Namespaces: namespaces},
+		}
+	}
 	healthProbe := opts.HealthProbeBindAddress
 	if healthProbe == "" {
 		healthProbe = ":8081"
@@ -214,9 +222,7 @@ func managerOptions(opts Options, scheme *runtime.Scheme) ctrl.Options {
 		LeaseDuration:              positiveDuration(opts.LeaseDuration),
 		RenewDeadline:              positiveDuration(opts.RenewDeadline),
 		RetryPeriod:                positiveDuration(opts.RetryPeriod),
-		Cache: cache.Options{
-			DefaultNamespaces: namespaces,
-		},
+		Cache:                      cacheOpts,
 	}
 }
 

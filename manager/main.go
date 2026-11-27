@@ -46,6 +46,7 @@ func newCommand(opts *server.Options) *cobra.Command {
 		SilenceErrors: true,
 		Version:       version,
 		RunE: func(cmd *cobra.Command, _ []string) error {
+			ctrl.SetLogger(klog.Background())
 			return server.Start(ctrl.SetupSignalHandler(), *opts)
 		},
 	}
